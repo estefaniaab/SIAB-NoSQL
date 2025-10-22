@@ -5,6 +5,10 @@ import { MongoClient } from "mongodb";
 
 import { insertPrestadores } from "./prestadorData.js";
 import { insertHospitales } from "./hospitalData.js";
+import { insertBiomedicos } from "./biomedicosData.js";
+import { insertEmpleados } from "./empleadosData.js";
+import { insertOrdenes } from "./ordenData.js";
+import { insertSedes } from "./sedeData.js"; // Add this import
 
 // 🧠 Configurar dotenv con ruta absoluta al .env (funciona desde cualquier carpeta)
 const __filename = fileURLToPath(import.meta.url);
@@ -21,6 +25,10 @@ async function insertAllData() {
 
     await insertPrestadores(db);
     await insertHospitales(db);
+    await insertBiomedicos(db);
+    await insertEmpleados(db);
+    await insertOrdenes(db);
+    await insertSedes(db); // Add this line
 
     console.log("🎯 Todos los datos iniciales fueron insertados correctamente");
   } catch (err) {
