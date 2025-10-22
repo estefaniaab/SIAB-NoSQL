@@ -37,6 +37,9 @@ export async function insertHospitales(db) {
     }
   ];
 
+  // Intenta eliminar todos los documentos existentes para una carga limpia
+  await db.collection("equipo").deleteMany({});
+  
   await db.collection("hospital").insertMany(hospitales);
   console.log("✅ Datos insertados en 'hospital'");
 }
