@@ -25,13 +25,13 @@ async function insertAllData() {
     console.log("✅ Conectado a la base de datos para insertar datos");
 
 
-    //await insertEquipos(db);
+    await insertEquipos(db);
     //await insertPrestadores(db);
     //await insertHospitales(db);
-    await insertBiomedicos(db);
-    await insertEmpleados(db);
-    await insertOrdenes(db);
-    await insertSedes(db); // Add this line
+    //await insertBiomedicos(db);
+    //await insertEmpleados(db);
+    //await insertOrdenes(db);
+    //await insertSedes(db); // Add this line
 
     console.log("🎯 Todos los datos iniciales fueron insertados correctamente");
   } catch (err) {
