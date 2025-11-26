@@ -1,131 +1,114 @@
-// validaciones/equipoValidation.js
+// validaciones/equipoValidation.js (Versión Final sin Embeddings, con flexibilidad)
 export async function applyEquipoValidation(db) {
   await db.command({
     collMod: "equipo",
     validator: {
       $jsonSchema: {
         bsonType: "object",
+        // Campos OBLIGATORIOS (mínimo necesario para identificar el equipo)
         required: [
-          "Id_Equipo",
+          "Id_equipo",
           "Nombre",
           "Marca",
           "Modelo",
+          "Serie",
           "Ubicacion",
-          "Nit_Hospital_REF",
-          "Accesorios",
-          "Mantenimiento_preventivo",
-          "Mantenimiento_correctivo"
+          "Id_Sede_REF",
+          "Id_Servicio_REF"
         ],
         properties: {
-          Id_Equipo: {
+          Id_equipo: { bsonType: "string" },
+          Nombre: { bsonType: "string" },
+          Marca: { bsonType: "string" },
+          Modelo: { bsonType: "string" },
+          Serie: { bsonType: "string" },
+          Ubicacion: { bsonType: "string" },
+          
+          // --- REFERENCIAS (Campos obligatorios) ---
+          Id_Sede_REF: { 
             bsonType: "string",
-            description: "Identificador único del equipo"
+            description: "Identificador de la Sede (referencia)."
           },
-          Nombre: {
+          Id_Servicio_REF: { 
             bsonType: "string",
-            description: "Nombre del equipo biomédico"
+            description: "Identificador del Servicio (referencia)."
           },
-          Marca: {
-            bsonType: "string",
-            description: "Marca comercial del equipo"
+          
+          // --- CAMPOS BASE (Opcionales, pero definidos para control de tipo) ---
+          Uso_Descripcion: { 
+            bsonType: ["string", "null"],
+            description: "Texto que describe el uso del equipo."
           },
-          Modelo: {
-            bsonType: "string",
-            description: "Modelo o referencia del equipo"
+          Imagen: { 
+            bsonType: ["string", "objectId", "null"],
+            description: "Referencia a la imagen."
           },
-          Ubicacion: {
-            bsonType: "string",
-            description: "Ubicación física del equipo dentro del hospital"
+          
+          // --- EQUIPOXPRESTADOR (ARRAY incrustado - Opcional) ---
+          Equipoxprestador: {
+            bsonType: "array",
+            description: "Contratos de servicio vigentes o históricos con prestadores.",
+            items: {
+              bsonType: "object",
+              required: ["Nit_prestador_REF", "Fecha_Inicio", "Fecha_Fin"],
+              properties: {
+                Nit_prestador_REF: { bsonType: "string" },
+                Fecha_Inicio: { bsonType: "date" },
+                Fecha_Fin: { bsonType: "date" }
+              }
+            }
           },
-          Nit_Hospital_REF: {
-            bsonType: "string",
-            description: "Referencia al hospital propietario del equipo"
-          },
-
-          // ----- ACCESORIOS -----
+          
+          // --- ACCESORIOS (ARRAY incrustado - Opcional) ---
           Accesorios: {
             bsonType: "array",
             description: "Listado de accesorios asociados al equipo",
             items: {
               bsonType: "object",
-              required: ["Id_Accesorio", "Nombre", "Estado"],
+              required: ["Referencia", "Nombre", "Marca", "Costo"],
               properties: {
-                Id_Accesorio: {
-                  bsonType: "string",
-                  description: "Identificador único del accesorio"
-                },
-                Nombre: {
-                  bsonType: "string",
-                  description: "Nombre o tipo de accesorio"
-                },
-                Estado: {
-                  bsonType: "string",
-                  enum: ["Operativo", "Dañado", "En mantenimiento"],
-                  description: "Estado actual del accesorio"
-                }
+                Referencia: { bsonType: "string" },
+                Nombre: { bsonType: "string" },
+                Marca: { bsonType: "string" },
+                Costo: { bsonType: ["double", "int"] }
               }
             }
           },
 
-          // ----- MANTENIMIENTO PREVENTIVO -----
+          // --- MANTENIMIENTO PREVENTIVO (ARRAY incrustado - Opcional) ---
           Mantenimiento_preventivo: {
             bsonType: "array",
-            description: "Historial de mantenimientos preventivos realizados al equipo",
+            description: "Historial de mantenimientos preventivos realizados.",
             items: {
               bsonType: "object",
-              required: ["Id_Mantenimiento", "Descripcion", "Fecha", "Responsable"],
+              required: ["Id_ReporteP", "Id_Biomedico_REF", "Fecha", "Limpieza", "Verificacion", "Aprobado"],
               properties: {
-                Id_Mantenimiento: {
-                  bsonType: "string",
-                  description: "Identificador del mantenimiento preventivo"
-                },
-                Descripcion: {
-                  bsonType: "string",
-                  description: "Descripción breve del mantenimiento"
-                },
-                Fecha: {
-                  bsonType: "date",
-                  description: "Fecha en que se realizó el mantenimiento"
-                },
-                Responsable: {
-                  bsonType: "string",
-                  description: "Nombre o identificación del técnico responsable"
-                },
-                Costo: {
-                  bsonType: ["double", "int"],
-                  description: "Costo asociado al mantenimiento (opcional)"
-                }
+                Id_ReporteP: { bsonType: "string" },
+                Id_Biomedico_REF: { bsonType: "string" }, 
+                Fecha: { bsonType: "date" },
+                Limpieza: { bsonType: "bool" },
+                Verificacion: { bsonType: "string" }, 
+                "Cambio-partes": { bsonType: "string" }, 
+                Aprobado: { bsonType: "bool" },
+                Descripcion: { bsonType: "string" }
               }
             }
           },
 
-          // ----- MANTENIMIENTO CORRECTIVO -----
+          // --- MANTENIMIENTO CORRECTIVO (ARRAY incrustado - Opcional) ---
           Mantenimiento_correctivo: {
             bsonType: "array",
-            description: "Historial de mantenimientos correctivos del equipo",
+            description: "Historial de mantenimientos correctivos realizados.",
             items: {
               bsonType: "object",
-              required: ["Id_Mantenimiento", "Descripcion", "Fecha", "Responsable"],
+              required: ["Id_ReporteC", "Id_Biomedico_REF", "Accion_correctiva", "Falla_presentada"],
               properties: {
-                Id_Mantenimiento: {
-                  bsonType: "string",
-                  description: "Identificador del mantenimiento correctivo"
-                },
-                Descripcion: {
-                  bsonType: "string",
-                  description: "Descripción del problema y reparación realizada"
-                },
-                Fecha: {
-                  bsonType: "date",
-                  description: "Fecha en que se realizó la reparación"
-                },
-                Responsable: {
-                  bsonType: "string",
-                  description: "Nombre o identificación del técnico responsable"
-                },
-                Costo: {
-                  bsonType: ["double", "int"],
-                  description: "Costo de la reparación (opcional)"
+                Id_ReporteC: { bsonType: "string" },
+                Id_Biomedico_REF: { bsonType: "string" }, 
+                Accion_correctiva: { bsonType: "string" },
+                Falla_presentada: { bsonType: "string" },
+                Repuestos: {
+                  bsonType: "string"
                 }
               }
             }
@@ -133,8 +116,10 @@ export async function applyEquipoValidation(db) {
         }
       }
     },
-    validationLevel: "strict"
+    // El nivel "moderate" permite actualizar documentos que ya existen (sin embeddings)
+    // para añadirles los campos de embedding posteriormente sin fallar la validación.
+    validationLevel: "moderate" 
   });
 
-  console.log("✅ Validación aplicada a 'equipo'");
+  console.log("✅ Validación 'equipo' aplicada en modo moderate, lista para anexar embeddings.");
 }
